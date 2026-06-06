@@ -247,8 +247,12 @@ st.markdown("""
     .stBalloons { z-index: 9999 !important; }
 
     .block-container {
-        max-width: 900px !important;
+        max-width: 1200px !important;
         padding-top: 2rem !important;
+    }
+
+    .chat-section {
+        position: sticky; top: 1rem;
     }
 
     /* ── Divider ── */
@@ -373,69 +377,63 @@ if not st.session_state.processed:
             st.rerun()
 
 else:
-    # ── RESULTS ──
-    data = st.session_state.summary_data
-    if not data:
-        st.warning("No analysis data found. Please re-analyze.")
+    left_col, right_col = st.columns([3, 2], gap="large")
 
-    else:
-        # Executive Summary
-        exec_summary = data.get("executive_summary", "")
-        st.markdown(f"""
-        <div class="card">
-            <div class="card-header">
-                <div class="card-header-icon" style="background:rgba(124,58,237,0.12);color:#A78BFA;">▣</div>
-                Executive Summary
-            </div>
-            <p>{exec_summary}</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # Key Insights
-        insights = data.get("key_insights", [])
-        if insights:
-            items = "".join(f'<div class="list-item"><div class="list-dot" style="background:#22C55E;"></div>{i}</div>' for i in insights)
+    with left_col:
+        data = st.session_state.summary_data
+        if not data:
+            st.warning("No analysis data found. Please re-analyze.")
+        else:
+            exec_summary = data.get("executive_summary", "")
             st.markdown(f"""
             <div class="card">
                 <div class="card-header">
-                    <div class="card-header-icon" style="background:rgba(34,197,94,0.12);color:#22C55E;">⚡</div>
-                    Key Insights
+                    <div class="card-header-icon" style="background:rgba(124,58,237,0.12);color:#A78BFA;">▣</div>
+                    Executive Summary
                 </div>
-                {items}
+                <p>{exec_summary}</p>
             </div>
             """, unsafe_allow_html=True)
 
-        # Action Items
-        actions = data.get("action_items", [])
-        if actions:
-            items = "".join(f'<div class="list-item"><div class="list-dot" style="background:#7C3AED;"></div>{a}</div>' for a in actions)
-            st.markdown(f"""
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-header-icon" style="background:rgba(124,58,237,0.12);color:#A78BFA;">◆</div>
-                    Action Items
+            insights = data.get("key_insights", [])
+            if insights:
+                items = "".join(f'<div class="list-item"><div class="list-dot" style="background:#22C55E;"></div>{i}</div>' for i in insights)
+                st.markdown(f"""
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-header-icon" style="background:rgba(34,197,94,0.12);color:#22C55E;">⚡</div>
+                        Key Insights
+                    </div>
+                    {items}
                 </div>
-                {items}
-            </div>
-            """, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
 
-        # Risks
-        risks = data.get("risks_notes", [])
-        if risks:
-            items = "".join(f'<div class="list-item"><div class="list-dot" style="background:#F59E0B;"></div>{r}</div>' for r in risks)
-            st.markdown(f"""
-            <div class="card">
-                <div class="card-header">
-                    <div class="card-header-icon" style="background:rgba(245,158,11,0.12);color:#FBBF24;">!</div>
-                    Risk Assessment
+            actions = data.get("action_items", [])
+            if actions:
+                items = "".join(f'<div class="list-item"><div class="list-dot" style="background:#7C3AED;"></div>{a}</div>' for a in actions)
+                st.markdown(f"""
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-header-icon" style="background:rgba(124,58,237,0.12);color:#A78BFA;">◆</div>
+                        Action Items
+                    </div>
+                    {items}
                 </div>
-                {items}
-            </div>
-            """, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
 
-        # Export + Back
-        e1, e2, _ = st.columns([2, 2, 4])
-        with e1:
+            risks = data.get("risks_notes", [])
+            if risks:
+                items = "".join(f'<div class="list-item"><div class="list-dot" style="background:#F59E0B;"></div>{r}</div>' for r in risks)
+                st.markdown(f"""
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-header-icon" style="background:rgba(245,158,11,0.12);color:#FBBF24;">!</div>
+                        Risk Assessment
+                    </div>
+                    {items}
+                </div>
+                """, unsafe_allow_html=True)
+
             report_text = f"""DOCUMENT ANALYSIS
 File: {st.session_state.current_filename}
 Language: {st.session_state.language}
@@ -446,65 +444,68 @@ EXECUTIVE SUMMARY:
 KEY INSIGHTS:
 """ + "\n".join(f" • {i}" for i in insights) + "\n\nACTION ITEMS:\n" + "\n".join(f" → {a}" for a in actions) + "\n\nRISKS:\n" + "\n".join(f" ! {r}" for r in risks)
 
-            st.download_button(
-                label="Export Report",
-                data=report_text,
-                file_name=f"report_{st.session_state.current_filename.replace('.pdf','')}.txt",
-                mime="text/plain",
-                use_container_width=True
-            )
-        with e2:
-            if st.button("← New Document", use_container_width=True):
-                st.session_state.pdf_text = None
-                st.session_state.summary_data = None
-                st.session_state.current_filename = None
-                st.session_state.processed = False
-                st.session_state.chat_history = []
-                st.rerun()
+            ex1, ex2 = st.columns(2)
+            with ex1:
+                st.download_button(
+                    label="Export Report",
+                    data=report_text,
+                    file_name=f"report_{st.session_state.current_filename.replace('.pdf','')}.txt",
+                    mime="text/plain",
+                    use_container_width=True
+                )
+            with ex2:
+                if st.button("← New Document", use_container_width=True):
+                    st.session_state.pdf_text = None
+                    st.session_state.summary_data = None
+                    st.session_state.current_filename = None
+                    st.session_state.processed = False
+                    st.session_state.chat_history = []
+                    st.rerun()
 
-        # Raw text expander
-        with st.expander("View raw extracted text"):
-            st.text_area("", value=st.session_state.pdf_text, height=150, disabled=True, label_visibility="collapsed")
+            with st.expander("View raw extracted text"):
+                st.text_area("", value=st.session_state.pdf_text, height=150, disabled=True, label_visibility="collapsed")
 
-    # ── CHAT ──
-    st.markdown('<div class="sep"></div>', unsafe_allow_html=True)
-    st.markdown('<div class="section-title">Ask anything about this document</div>', unsafe_allow_html=True)
-    st.markdown('<div class="section-sub">Get answers based on the document content.</div>', unsafe_allow_html=True)
+    with right_col:
+        st.markdown('<div class="chat-section">', unsafe_allow_html=True)
+        st.markdown('<div class="section-title">Ask anything</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-sub" style="margin-bottom:16px;">Get answers based on the document content.</div>', unsafe_allow_html=True)
 
-    if not st.session_state.chat_history:
-        chips = ["Summarize financial risks", "Show largest transactions", "Find deadlines", "Extract key numbers", "Compare with previous"]
-        chip_row = "".join(f'<span class="prompt-chip">{c}</span>' for c in chips)
-        st.markdown(f"<div style='margin-bottom:16px;'>{chip_row}</div>", unsafe_allow_html=True)
-
-    chat_container = st.container(height=360)
-
-    with chat_container:
         if not st.session_state.chat_history:
-            st.markdown(
-                '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#3F3F46;text-align:center;padding:20px;">'
-                '<span style="font-size:2rem;margin-bottom:12px;">💬</span>'
-                'Ask a question to get started.</div>',
-                unsafe_allow_html=True
-            )
-        else:
-            for msg in st.session_state.chat_history:
-                with st.chat_message(msg["role"]):
-                    st.markdown(msg["content"])
+            chips = ["Summarize risks", "Find key numbers", "Extract deadlines", "Show transactions"]
+            chip_row = "".join(f'<span class="prompt-chip">{c}</span>' for c in chips)
+            st.markdown(f"<div style='margin-bottom:16px;'>{chip_row}</div>", unsafe_allow_html=True)
 
-    if user_query := st.chat_input("Ask anything about this document..."):
-        st.session_state.chat_history.append({"role": "user", "content": user_query})
+        chat_container = st.container(height=480)
+
         with chat_container:
-            with st.chat_message("user"):
-                st.markdown(user_query)
-            with st.chat_message("assistant"):
-                with st.spinner(""):
-                    from utils import query_pdf_data
-                    response_text = query_pdf_data(
-                        text=st.session_state.pdf_text,
-                        user_question=user_query,
-                        history=st.session_state.chat_history[:-1],
-                        api_key=env_key
-                    )
-                    st.markdown(response_text)
-        st.session_state.chat_history.append({"role": "assistant", "content": response_text})
-        st.rerun()
+            if not st.session_state.chat_history:
+                st.markdown(
+                    '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#3F3F46;text-align:center;padding:20px;">'
+                    '<span style="font-size:2rem;margin-bottom:12px;">💬</span>'
+                    'Ask a question to get started.</div>',
+                    unsafe_allow_html=True
+                )
+            else:
+                for msg in st.session_state.chat_history:
+                    with st.chat_message(msg["role"]):
+                        st.markdown(msg["content"])
+
+        if user_query := st.chat_input("Ask anything about this document..."):
+            st.session_state.chat_history.append({"role": "user", "content": user_query})
+            with chat_container:
+                with st.chat_message("user"):
+                    st.markdown(user_query)
+                with st.chat_message("assistant"):
+                    with st.spinner(""):
+                        from utils import query_pdf_data
+                        response_text = query_pdf_data(
+                            text=st.session_state.pdf_text,
+                            user_question=user_query,
+                            history=st.session_state.chat_history[:-1],
+                            api_key=env_key
+                        )
+                        st.markdown(response_text)
+            st.session_state.chat_history.append({"role": "assistant", "content": response_text})
+            st.rerun()
+
+        st.markdown('</div>', unsafe_allow_html=True)
