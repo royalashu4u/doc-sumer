@@ -15,11 +15,11 @@ LANGUAGES = [
     "Polish", "Swedish", "Greek", "Hebrew", "Romanian", "Ukrainian"
 ]
 
-for key in ["pdf_text", "summary_data", "current_filename", "chat_history", "language", "processing"]:
+for key in ["pdf_text", "summary_data", "current_filename", "chat_history", "language", "processing", "processed"]:
     if key not in st.session_state:
         if key == "language":
             st.session_state[key] = "English"
-        elif key == "processing":
+        elif key in ("processing", "processed"):
             st.session_state[key] = False
         elif key == "chat_history":
             st.session_state[key] = []
