@@ -1,0 +1,24 @@
+# Environment & Secrets (DO NOT COMMIT)
+.env
+
+# Virtual Environment
+venv/
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Dev binaries (ngrok tunnel client)
+ngrok
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
