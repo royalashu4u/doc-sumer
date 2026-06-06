@@ -1,6 +1,4 @@
 import streamlit as st
-import os
-import time
 from utils import extract_text, get_ai_summary, load_env_api_key
 
 # 1. Page Configuration & Aesthetic Theme setup
@@ -411,22 +409,16 @@ with lang_col2:
     )
     st.session_state.language = selected_lang
 
-# Main control panel layout (Upload file on the left, settings on the right)
-col_upload, col_settings = st.columns([3, 2], gap="large")
+env_key = load_env_api_key()
 
-with col_upload:
-    st.markdown("### 📥 Document Upload")
-    uploaded_file = st.file_uploader(
-        "Upload PDF document to analyze",
-        type=["pdf"],
-        help="Drag and drop or browse to upload a PDF file"
-    )
+st.markdown("### 📥 Document Upload")
+uploaded_file = st.file_uploader(
+    "Upload PDF document to analyze",
+    type=["pdf"],
+    help="Drag and drop or browse to upload a PDF file"
+)
 
-with col_settings:
-    env_key = load_env_api_key()
-    is_demo_mode = st.toggle("🧪 Use Offline Demo Mode (Mock AI)", value=not env_key)
-
-    # Handle file upload change
+# Handle file upload change
 if uploaded_file is not None:
     if st.session_state.current_filename != uploaded_file.name:
         # Reset if new file uploaded
@@ -493,9 +485,8 @@ if st.session_state.pdf_text:
                         response_text = query_pdf_data(
                             text=st.session_state.pdf_text,
                             user_question=user_query,
-                            history=st.session_state.chat_history[:-1],
-                            api_key=env_key,
-                            is_demo=is_demo_mode
+                             history=st.session_state.chat_history[:-1],
+                            api_key=env_key
                         )
                         st.write(response_text)
             st.session_state.chat_history.append({"role": "assistant", "content": response_text})
@@ -508,20 +499,15 @@ if st.session_state.pdf_text:
         if not st.session_state.processed or st.session_state.summary_data is None:
             if st.button("🚀 Run Document Analysis", type="primary", use_container_width=True):
                 run_analysis = True
-        else:
-            if "last_demo_mode" in st.session_state and st.session_state.last_demo_mode != is_demo_mode:
-                run_analysis = True
 
         if run_analysis:
             with st.spinner("Analyzing document structure & generating insights..."):
                 summary = get_ai_summary(
                     st.session_state.pdf_text,
                     api_key=env_key,
-                    language=st.session_state.language,
-                    is_demo=is_demo_mode
+                    language=st.session_state.language
                 )
                 st.session_state.summary_data = summary
-                st.session_state.last_demo_mode = is_demo_mode
                 st.session_state.processed = True
                 st.success("Analysis complete!")
                 st.balloons()
