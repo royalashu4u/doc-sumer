@@ -14,146 +14,352 @@ st.set_page_config(
 # Inject custom premium CSS for visual excellence
 st.markdown("""
 <style>
-    /* Main Layout and Fonts */
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
-    
-    html, body, [class*="css"] {
-        font-family: 'Outfit', sans-serif;
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    :root {
+        --primary-50: #EEF2FF;
+        --primary-100: #E0E7FF;
+        --primary-200: #C7D2FE;
+        --primary-300: #A5B4FC;
+        --primary-400: #818CF8;
+        --primary-500: #6366F1;
+        --primary-600: #4F46E5;
+        --primary-700: #4338CA;
+        --primary-800: #3730A3;
+        --primary-900: #312E81;
+        --surface-base: #0F1117;
+        --surface-card: #181B23;
+        --surface-elevated: #1E2230;
+        --surface-hover: #262A3A;
+        --border-subtle: rgba(255, 255, 255, 0.06);
+        --border-default: rgba(255, 255, 255, 0.1);
+        --border-accent: rgba(99, 102, 241, 0.3);
+        --text-primary: #F1F5F9;
+        --text-secondary: #94A3B8;
+        --text-tertiary: #64748B;
+        --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+        --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.15);
+        --radius-sm: 6px;
+        --radius-md: 10px;
+        --radius-lg: 16px;
+        --radius-xl: 20px;
     }
-    
-    /* Header Customization */
+
+    html, body, [class*="css"] {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        background-color: var(--surface-base);
+        color: var(--text-primary);
+    }
+
+    .stApp {
+        background: var(--surface-base);
+    }
+
+    /* ── Header ── */
     .main-header {
-        font-size: 2.6rem;
-        font-weight: 700;
-        background: linear-gradient(135deg, #6366F1 0%, #A855F7 100%);
+        font-size: clamp(1.8rem, 3.2vw, 3rem);
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        background: linear-gradient(135deg, #818CF8 0%, #A78BFA 40%, #C084FC 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        margin-bottom: 0.2rem;
+        background-clip: text;
+        margin-bottom: 0.15rem;
+        line-height: 1.2;
     }
-    
+
     .main-subtitle {
-        font-size: 1.15rem;
-        color: #94A3B8;
-        margin-bottom: 1.8rem;
+        font-size: clamp(0.95rem, 1.1vw, 1.1rem);
+        color: var(--text-secondary);
+        margin-bottom: 2rem;
         font-weight: 400;
+        letter-spacing: -0.01em;
     }
-    
+
     .checklist-item {
-        color: #38BDF8;
+        color: var(--primary-400);
         font-weight: 500;
         display: inline-block;
-        margin-right: 15px;
+        margin-right: 12px;
+        background: rgba(99, 102, 241, 0.1);
+        padding: 2px 10px;
+        border-radius: var(--radius-sm);
+        font-size: 0.85rem;
     }
-    
-    /* Premium Content Cards Styling */
+
+    /* ── Cards ── */
     .card {
-        background-color: #1E293B;
-        border-radius: 12px;
-        padding: 24px;
-        margin-bottom: 24px;
-        box-shadow: 0 4px 15px -3px rgba(0, 0, 0, 0.3);
-        border: 1px solid #334155;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        background: var(--surface-card);
+        border-radius: var(--radius-lg);
+        padding: 20px 24px;
+        margin-bottom: 16px;
+        border: 1px solid var(--border-default);
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
     }
-    
+
+    .card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .card:hover::before {
+        opacity: 1;
+    }
+
     .card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px -5px rgba(99, 102, 241, 0.15);
+        transform: translateY(-1px);
+        border-color: var(--border-accent);
+        box-shadow: var(--shadow-lg), var(--shadow-glow);
     }
-    
+
     .card-title {
-        font-size: 1.3rem;
+        font-size: 1.05rem;
         font-weight: 600;
+        letter-spacing: -0.01em;
         margin-top: 0;
-        margin-bottom: 15px;
+        margin-bottom: 12px;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
     }
-    
-    /* Segment-Specific Cards */
-    .summary-card {
-        border-left: 5px solid #6366F1; /* Indigo */
-    }
-    .summary-title {
-        color: #818CF8;
-    }
-    
-    .insights-card {
-        border-left: 5px solid #10B981; /* Emerald */
-    }
-    .insights-title {
-        color: #34D399;
-    }
-    
-    .actions-card {
-        border-left: 5px solid #8B5CF6; /* Violet */
-    }
-    .actions-title {
-        color: #A78BFA;
-    }
-    
-    .risks-card {
-        border-left: 5px solid #F59E0B; /* Amber */
-        background-color: #2D2316;
-        border-color: #453015;
-    }
-    .risks-title {
-        color: #FBBF24;
-    }
-    
-    /* Bullet points styling */
-    .bullet-list {
-        list-style-type: none;
-        padding-left: 0;
+
+    .summary-card { border-left: 3px solid var(--primary-500); }
+    .summary-title { color: var(--primary-400); }
+    .insights-card { border-left: 3px solid #10B981; }
+    .insights-title { color: #34D399; }
+    .actions-card { border-left: 3px solid #8B5CF6; }
+    .actions-title { color: #A78BFA; }
+    .risks-card { border-left: 3px solid #F59E0B; }
+    .risks-title { color: #FBBF24; }
+
+    .card p {
+        font-size: 0.95rem;
+        line-height: 1.7;
+        color: var(--text-secondary);
         margin: 0;
     }
-    
+
+    /* ── Bullet Lists ── */
+    .bullet-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
     .bullet-list li {
         position: relative;
-        padding-left: 30px;
-        margin-bottom: 12px;
-        font-size: 1.05rem;
-        line-height: 1.5;
-        color: #E2E8F0;
+        padding: 8px 0 8px 28px;
+        font-size: 0.9rem;
+        line-height: 1.6;
+        color: var(--text-secondary);
+        border-bottom: 1px solid var(--border-subtle);
     }
-    
+
+    .bullet-list li:last-child {
+        border-bottom: none;
+    }
+
     .bullet-list li::before {
         position: absolute;
         left: 0;
-        top: 2px;
-        font-weight: bold;
-        font-size: 1.1rem;
+        top: 9px;
+        font-size: 0.8rem;
     }
-    
-    .insights-list li::before {
-        content: "✓";
-        color: #10B981;
-    }
-    
-    .actions-list li::before {
-        content: "→";
-        color: #8B5CF6;
-    }
-    
-    .risks-list li::before {
-        content: "⚠";
-        color: #F59E0B;
-    }
-    
-    /* Custom divider */
+
+    .insights-list li::before { content: "✓"; color: #10B981; }
+    .actions-list li::before { content: "→"; color: #8B5CF6; }
+    .risks-list li::before { content: "!"; color: #F59E0B; font-weight: 700; }
+
+    /* ── Dividers ── */
     .divider {
         height: 1px;
-        background-color: #334155;
-        margin: 20px 0;
+        background: linear-gradient(90deg, var(--border-default), transparent);
+        margin: 24px 0;
     }
-    
-    /* Completely hide Streamlit sidebar controls to fix empty sidebar UI/UX */
-    [data-testid="collapsedControl"] {
-        display: none !important;
+
+    /* ── Streamlit Overrides ── */
+    [data-testid="collapsedControl"] { display: none !important; }
+    section[data-testid="stSidebar"] { display: none !important; }
+
+    .stTextInput, .stSelectbox, .stFileUploader {
+        border-radius: var(--radius-md) !important;
     }
-    section[data-testid="stSidebar"] {
-        display: none !important;
+
+    div[data-testid="stFileUploader"] {
+        background: var(--surface-card) !important;
+        border: 1px dashed var(--border-default) !important;
+        border-radius: var(--radius-lg) !important;
+        padding: 16px !important;
+        transition: border-color 0.2s ease;
+    }
+
+    div[data-testid="stFileUploader"]:hover {
+        border-color: var(--primary-500) !important;
+    }
+
+    div[data-testid="stSelectbox"] > div {
+        background: var(--surface-card) !important;
+        border: 1px solid var(--border-default) !important;
+        border-radius: var(--radius-md) !important;
+    }
+
+    div[data-testid="stSelectbox"] > div:hover {
+        border-color: var(--border-accent) !important;
+    }
+
+    .st-bb, .st-at, .st-ae, .st-ag {
+        background-color: var(--surface-card) !important;
+        color: var(--text-primary) !important;
+    }
+
+    /* Buttons */
+    .stButton > button {
+        border-radius: var(--radius-md) !important;
+        font-weight: 600 !important;
+        font-size: 0.9rem !important;
+        padding: 0.5rem 1.25rem !important;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        letter-spacing: -0.01em !important;
+        border: 1px solid var(--border-default) !important;
+        background: var(--surface-card) !important;
+        color: var(--text-primary) !important;
+    }
+
+    .stButton > button:hover {
+        border-color: var(--primary-500) !important;
+        box-shadow: 0 0 20px rgba(99, 102, 241, 0.15) !important;
+        transform: translateY(-1px);
+    }
+
+    .stButton > button[kind="primary"] {
+        background: linear-gradient(135deg, var(--primary-600), var(--primary-700)) !important;
+        border: none !important;
+        color: white !important;
+        box-shadow: 0 4px 16px rgba(79, 70, 229, 0.3) !important;
+    }
+
+    .stButton > button[kind="primary"]:hover {
+        box-shadow: 0 6px 24px rgba(79, 70, 229, 0.45) !important;
+        transform: translateY(-2px);
+    }
+
+    /* Toggle */
+    .stToggle > div[data-testid="stBaseWidget"] > label {
+        gap: 8px !important;
+    }
+
+    .stToggle > div > div > div {
+        background: var(--surface-hover) !important;
+    }
+
+    /* Info boxes */
+    .stAlert {
+        background: var(--surface-card) !important;
+        border: 1px solid var(--border-default) !important;
+        border-radius: var(--radius-md) !important;
+        color: var(--text-secondary) !important;
+    }
+
+    .stAlert > div:first-child {
+        color: var(--primary-400) !important;
+    }
+
+    /* Chat messages */
+    div[data-testid="stChatMessage"] {
+        background: var(--surface-card) !important;
+        border: 1px solid var(--border-subtle) !important;
+        border-radius: var(--radius-md) !important;
+        padding: 12px 16px !important;
+        margin-bottom: 8px !important;
+    }
+
+    div[data-testid="stChatMessage"][aria-label="user"] {
+        border-left: 3px solid var(--primary-500) !important;
+    }
+
+    div[data-testid="stChatMessage"][aria-label="assistant"] {
+        border-left: 3px solid #10B981 !important;
+    }
+
+    div[data-testid="stChatInput"] > div {
+        background: var(--surface-card) !important;
+        border: 1px solid var(--border-default) !important;
+        border-radius: var(--radius-lg) !important;
+    }
+
+    div[data-testid="stChatInput"] > div:focus-within {
+        border-color: var(--primary-500) !important;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+    }
+
+    /* Download button */
+    .stDownloadButton > button {
+        background: linear-gradient(135deg, #059669, #047857) !important;
+        border: none !important;
+        color: white !important;
+        font-weight: 600 !important;
+        border-radius: var(--radius-md) !important;
+        box-shadow: 0 4px 16px rgba(5, 150, 105, 0.3) !important;
+    }
+
+    .stDownloadButton > button:hover {
+        box-shadow: 0 6px 24px rgba(5, 150, 105, 0.45) !important;
+        transform: translateY(-2px);
+    }
+
+    /* Expander */
+    .st-expander {
+        background: var(--surface-card) !important;
+        border: 1px solid var(--border-default) !important;
+        border-radius: var(--radius-md) !important;
+    }
+
+    .st-expander > div:first-child {
+        background: transparent !important;
+    }
+
+    /* Spinner */
+    .stSpinner > div > div {
+        border-color: var(--primary-500) transparent transparent transparent !important;
+    }
+
+    .stSpinner p {
+        color: var(--text-secondary) !important;
+    }
+
+    /* Success / Error / Warning messages */
+    .stSuccess, .stError, .stWarning {
+        border-radius: var(--radius-md) !important;
+        border: 1px solid var(--border-default) !important;
+    }
+
+    .stSuccess {
+        background: rgba(16, 185, 129, 0.1) !important;
+        border-color: rgba(16, 185, 129, 0.3) !important;
+    }
+
+    /* Language label */
+    .lang-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin-top: 8px;
+    }
+
+    /* Balloons fix */
+    .stBalloons {
+        z-index: 9999 !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -220,10 +426,7 @@ with col_settings:
     env_key = load_env_api_key()
     is_demo_mode = st.toggle("🧪 Use Offline Demo Mode (Mock AI)", value=not env_key)
 
-    # Quick Demo Load Button
-    load_demo_btn = st.button("📂 Load Demo Business PDF", use_container_width=True)
-
-# Handle file upload change
+    # Handle file upload change
 if uploaded_file is not None:
     if st.session_state.current_filename != uploaded_file.name:
         # Reset if new file uploaded
@@ -238,27 +441,8 @@ if uploaded_file is not None:
             except Exception as e:
                 st.error(f"Error: {str(e)}")
 
-# Handle loading demo report PDF
-if load_demo_btn:
-    demo_path = "assets/demo_report.pdf"
-    if os.path.exists(demo_path):
-        with st.spinner("Loading demo document..."):
-            try:
-                extracted_text = extract_text(demo_path)
-                st.session_state.pdf_text = extracted_text
-                st.session_state.current_filename = "demo_report.pdf"
-                st.session_state.summary_data = None
-                st.session_state.processed = False
-                st.session_state.chat_history = []
-                st.success("Loaded demo_report.pdf successfully!")
-                st.rerun()
-            except Exception as e:
-                st.error(f"Error reading demo report: {str(e)}")
-    else:
-        st.error("Demo PDF file not found locally in `assets/` folder.")
-
-# Clear status if no file is present and not loading demo
-if uploaded_file is None and st.session_state.current_filename != "demo_report.pdf":
+# Clear status if no file is present
+if uploaded_file is None:
     st.session_state.pdf_text = None
     st.session_state.summary_data = None
     st.session_state.current_filename = None
@@ -422,7 +606,7 @@ KEY INSIGHTS:
 
 else:
     # Help guide when empty
-    st.info("💡 Getting Started: Upload a PDF file using the uploader above, or click 'Load Demo Business PDF' in the settings panel to test immediately.")
+    st.info("💡 Upload a PDF file using the uploader above to start analyzing your document.")
 
 # Premium styled Pitch tip banner at the bottom
 st.markdown("""
