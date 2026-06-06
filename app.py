@@ -158,7 +158,13 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Initialize Session States
+LANGUAGES = [
+    "English", "Hindi", "Spanish", "French", "German", "Chinese",
+    "Japanese", "Arabic", "Portuguese", "Russian", "Italian",
+    "Dutch", "Korean", "Turkish", "Vietnamese", "Thai", "Indonesian",
+    "Polish", "Swedish", "Greek", "Hebrew", "Romanian", "Ukrainian"
+]
+
 if "pdf_text" not in st.session_state:
     st.session_state.pdf_text = None
 if "summary_data" not in st.session_state:
@@ -169,6 +175,8 @@ if "processed" not in st.session_state:
     st.session_state.processed = False
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
+if "language" not in st.session_state:
+    st.session_state.language = "English"
 
 # 2. Main Screen Layout
 # Dynamic Title
@@ -184,6 +192,19 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+# Language selector (global)
+lang_col1, lang_col2, _ = st.columns([1, 2, 4])
+with lang_col1:
+    st.markdown("##### 🌐 Language")
+with lang_col2:
+    selected_lang = st.selectbox(
+        "Language",
+        LANGUAGES,
+        index=LANGUAGES.index(st.session_state.language),
+        label_visibility="collapsed"
+    )
+    st.session_state.language = selected_lang
+
 # Main control panel layout (Upload file on the left, settings on the right)
 col_upload, col_settings = st.columns([3, 2], gap="large")
 
@@ -196,24 +217,8 @@ with col_upload:
     )
 
 with col_settings:
-    st.markdown("### ⚙️ Settings & Controls")
-    
-    # Language selector
-    language = st.selectbox(
-        "Output Language / अनुवाद",
-        ["English", "Hindi"],
-        index=0,
-        help="Select the language for the final analysis."
-    )
-    
-    # API key detection & Demo Toggle
     env_key = load_env_api_key()
-    if env_key:
-        st.markdown('<div style="color: #34D399; font-weight: 500; font-size: 0.95rem; margin-bottom: 8px;">⚡ Pollinations AI Connected</div>', unsafe_allow_html=True)
-        is_demo_mode = st.toggle("🧪 Use Offline Demo Mode (Mock AI)", value=False)
-    else:
-        st.markdown('<div style="color: #FBBF24; font-weight: 500; font-size: 0.95rem; margin-bottom: 8px;">⚠️ Running in Offline Demo Mode (No API key found)</div>', unsafe_allow_html=True)
-        is_demo_mode = True
+    is_demo_mode = st.toggle("🧪 Use Offline Demo Mode (Mock AI)", value=not env_key)
 
     # Quick Demo Load Button
     load_demo_btn = st.button("📂 Load Demo Business PDF", use_container_width=True)
@@ -264,126 +269,10 @@ if uploaded_file is None and st.session_state.current_filename != "demo_report.p
 if st.session_state.pdf_text:
     st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
     
-    # Split the main interactive area into Left (Analysis/Controls) and Right (Chat)
-    main_col_left, main_col_right = st.columns([5, 4], gap="large")
+    # Split the main interactive area — Chat on the left, Analysis on the right
+    chat_col, analysis_col = st.columns([4, 5], gap="large")
     
-    with main_col_left:
-        # Active document banner
-        st.info(f"Active Document: **{st.session_state.current_filename}** ({len(st.session_state.pdf_text or '')} characters extracted)")
-        
-        # Analyze action button logic
-        run_analysis = False
-        if not st.session_state.processed or st.session_state.summary_data is None:
-            button_label = "🚀 Run Document Analysis"
-            if st.button(button_label, type="primary", use_container_width=True):
-                run_analysis = True
-        else:
-            # Rerun triggers
-            if "last_lang" in st.session_state and st.session_state.last_lang != language:
-                run_analysis = True
-            if "last_demo_mode" in st.session_state and st.session_state.last_demo_mode != is_demo_mode:
-                run_analysis = True
-                
-        if run_analysis:
-            with st.spinner("Analyzing document structure & generating insights..."):
-                summary = get_ai_summary(
-                    st.session_state.pdf_text,
-                    api_key=env_key,
-                    language=language,
-                    is_demo=is_demo_mode
-                )
-                st.session_state.summary_data = summary
-                st.session_state.last_lang = language
-                st.session_state.last_demo_mode = is_demo_mode
-                st.session_state.processed = True
-                st.success("Analysis complete!")
-                st.balloons()
-                st.rerun() # rerun to render results immediately
-                
-        # Display Outputs (Only when processed)
-        if st.session_state.processed and st.session_state.summary_data:
-            summary_data = st.session_state.summary_data
-            if "warning" in summary_data:
-                st.warning(summary_data["warning"])
-                
-            # Executive Summary (Wide Card)
-            exec_summary = summary_data.get("executive_summary", "No summary generated.")
-            st.markdown(f"""
-            <div class="card summary-card">
-                <div class="card-title summary-title">📘 Executive Summary</div>
-                <p style="font-size:1.1rem; line-height:1.6; color:#E2E8F0; margin:0;">{exec_summary}</p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Key Insights & Action Items inside left column stacked vertically for better readability
-            insights = summary_data.get("key_insights", [])
-            insights_html = "".join([f"<li>{item}</li>" for item in insights])
-            st.markdown(f"""
-            <div class="card insights-card">
-                <div class="card-title insights-title">⚡ Key Insights</div>
-                <ul class="bullet-list insights-list">
-                    {insights_html if insights_html else '<li>No insights extracted.</li>'}
-                </ul>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            actions = summary_data.get("action_items", [])
-            actions_html = "".join([f"<li>{item}</li>" for item in actions])
-            st.markdown(f"""
-            <div class="card actions-card">
-                <div class="card-title actions-title">🎯 Action Items</div>
-                <ul class="bullet-list actions-list">
-                    {actions_html if actions_html else '<li>No action items extracted.</li>'}
-                </ul>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Risks/Caveats
-            risks = summary_data.get("risks_notes", [])
-            risks_html = "".join([f"<li>{item}</li>" for item in risks])
-            st.markdown(f"""
-            <div class="card risks-card">
-                <div class="card-title risks-title">⚠️ Risks & Important Caveats</div>
-                <ul class="bullet-list risks-list">
-                    {risks_html if risks_html else '<li>No specific risks noted.</li>'}
-                </ul>
-            </div>
-            """, unsafe_allow_html=True)
-            
-            # Export
-            st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
-            report_text = f"""==================================================
-DOCUMENT ANALYSIS REPORT: {st.session_state.current_filename}
-Language: {language}
-==================================================
-
-EXECUTIVE SUMMARY:
-{exec_summary}
-
-KEY INSIGHTS:
-"""
-            for i, ins in enumerate(insights, 1):
-                report_text += f" {i}. {ins}\n"
-            report_text += "\nACTION ITEMS:\n"
-            for i, act in enumerate(actions, 1):
-                report_text += f" - {act}\n"
-            report_text += "\nRISKS & NOTES:\n"
-            for i, rsk in enumerate(risks, 1):
-                report_text += f" * {rsk}\n"
-                
-            st.download_button(
-                label="📥 Download Structured Report (.txt)",
-                data=report_text,
-                file_name=f"analysis_{st.session_state.current_filename.replace('.pdf', '')}.txt",
-                mime="text/plain",
-                use_container_width=True
-            )
-            
-        # Expander for raw text view (always useful for transparency/debugging)
-        with st.expander("🔍 View Raw Extracted PDF Text"):
-            st.text_area("Extracted Text Content", value=st.session_state.pdf_text, height=200, disabled=True)
-
-    with main_col_right:
+    with chat_col:
         # Chat interface on the right side
         st.markdown('<div class="card summary-card" style="border-left-color: #8B5CF6;">'
                     '<div class="card-title" style="color: #C084FC; font-size: 1.25rem;">💬 Chat with Document</div>'
@@ -427,6 +316,109 @@ KEY INSIGHTS:
                         st.write(response_text)
             st.session_state.chat_history.append({"role": "assistant", "content": response_text})
             st.rerun()
+
+    with analysis_col:
+        st.info(f"Active Document: **{st.session_state.current_filename}** ({len(st.session_state.pdf_text or '')} characters extracted)")
+
+        run_analysis = False
+        if not st.session_state.processed or st.session_state.summary_data is None:
+            if st.button("🚀 Run Document Analysis", type="primary", use_container_width=True):
+                run_analysis = True
+        else:
+            if "last_demo_mode" in st.session_state and st.session_state.last_demo_mode != is_demo_mode:
+                run_analysis = True
+
+        if run_analysis:
+            with st.spinner("Analyzing document structure & generating insights..."):
+                summary = get_ai_summary(
+                    st.session_state.pdf_text,
+                    api_key=env_key,
+                    language=st.session_state.language,
+                    is_demo=is_demo_mode
+                )
+                st.session_state.summary_data = summary
+                st.session_state.last_demo_mode = is_demo_mode
+                st.session_state.processed = True
+                st.success("Analysis complete!")
+                st.balloons()
+                st.rerun()
+
+        if st.session_state.processed and st.session_state.summary_data:
+            summary_data = st.session_state.summary_data
+            if "warning" in summary_data:
+                st.warning(summary_data["warning"])
+
+            exec_summary = summary_data.get("executive_summary", "No summary generated.")
+            st.markdown(f"""
+            <div class="card summary-card">
+                <div class="card-title summary-title">📘 Executive Summary</div>
+                <p style="font-size:1.1rem; line-height:1.6; color:#E2E8F0; margin:0;">{exec_summary}</p>
+            </div>
+            """, unsafe_allow_html=True)
+
+            insights = summary_data.get("key_insights", [])
+            insights_html = "".join([f"<li>{item}</li>" for item in insights])
+            st.markdown(f"""
+            <div class="card insights-card">
+                <div class="card-title insights-title">⚡ Key Insights</div>
+                <ul class="bullet-list insights-list">
+                    {insights_html if insights_html else '<li>No insights extracted.</li>'}
+                </ul>
+            </div>
+            """, unsafe_allow_html=True)
+
+            actions = summary_data.get("action_items", [])
+            actions_html = "".join([f"<li>{item}</li>" for item in actions])
+            st.markdown(f"""
+            <div class="card actions-card">
+                <div class="card-title actions-title">🎯 Action Items</div>
+                <ul class="bullet-list actions-list">
+                    {actions_html if actions_html else '<li>No action items extracted.</li>'}
+                </ul>
+            </div>
+            """, unsafe_allow_html=True)
+
+            risks = summary_data.get("risks_notes", [])
+            risks_html = "".join([f"<li>{item}</li>" for item in risks])
+            st.markdown(f"""
+            <div class="card risks-card">
+                <div class="card-title risks-title">⚠️ Risks & Important Caveats</div>
+                <ul class="bullet-list risks-list">
+                    {risks_html if risks_html else '<li>No specific risks noted.</li>'}
+                </ul>
+            </div>
+            """, unsafe_allow_html=True)
+
+            st.markdown('<div class="divider"></div>', unsafe_allow_html=True)
+            report_text = f"""==================================================
+DOCUMENT ANALYSIS REPORT: {st.session_state.current_filename}
+Language: {st.session_state.language}
+==================================================
+
+EXECUTIVE SUMMARY:
+{exec_summary}
+
+KEY INSIGHTS:
+"""
+            for i, ins in enumerate(insights, 1):
+                report_text += f" {i}. {ins}\n"
+            report_text += "\nACTION ITEMS:\n"
+            for i, act in enumerate(actions, 1):
+                report_text += f" - {act}\n"
+            report_text += "\nRISKS & NOTES:\n"
+            for i, rsk in enumerate(risks, 1):
+                report_text += f" * {rsk}\n"
+
+            st.download_button(
+                label="📥 Download Structured Report (.txt)",
+                data=report_text,
+                file_name=f"analysis_{st.session_state.current_filename.replace('.pdf', '')}.txt",
+                mime="text/plain",
+                use_container_width=True
+            )
+
+        with st.expander("🔍 View Raw Extracted PDF Text"):
+            st.text_area("Extracted Text Content", value=st.session_state.pdf_text, height=200, disabled=True)
 
 else:
     # Help guide when empty
